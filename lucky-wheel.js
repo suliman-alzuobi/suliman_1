@@ -216,4 +216,4 @@ export async function createLuckyWheelGif(winners, selectedWinnerIndex, avatarUr
 
 function easeOutQuad(t) {
     return t * (2 - t);
-}
+} 
