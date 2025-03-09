@@ -9,10 +9,9 @@ export async function createLuckyWheelGif(winners, selectedWinnerIndex, avatarUr
     winners = winners.reverse();
 
     const numSegments = winners.length;
-    const canvasWidth = 500; // زيادة حجم الكانفاس
-    const canvasHeight = 500;
-    const wheelRadius = 230; // زيادة حجم العجلة
-    const centerRadius = 50; // زيادة حجم الدائرة المركزية
+    const canvasSize = 500;
+    const wheelRadius = 230;
+    const centerRadius = 50;
 
     try {
         const [avatarImage, pinImage] = await Promise.all([
@@ -20,37 +19,23 @@ export async function createLuckyWheelGif(winners, selectedWinnerIndex, avatarUr
             loadImage("pin.png")
         ]);
 
-        const encoder = new GIFEncoder(canvasWidth, canvasHeight);
+        const encoder = new GIFEncoder(canvasSize, canvasSize);
         const writableStream = new Readable().wrap(encoder.createWriteStream({}));
 
         encoder.start();
         encoder.setRepeat(0);
         encoder.setDelay(50);
         encoder.setQuality(10);
-        encoder.setTransparent();
 
-        const canvas = createCanvas(canvasWidth, canvasHeight);
+        const canvas = createCanvas(canvasSize, canvasSize);
         const ctx = canvas.getContext('2d');
 
         function drawWheel(rotation) {
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-            // خلفية محيطية للعجلة
-            const gradient = ctx.createRadialGradient(
-                canvasWidth/2, canvasHeight/2, wheelRadius-50,
-                canvasWidth/2, canvasHeight/2, wheelRadius+20
-            );
-            gradient.addColorStop(0, '#2C3E50');
-            gradient.addColorStop(1, '#1a1a1a');
-            
+            // رسم العجلة
             ctx.beginPath();
-            ctx.arc(canvasWidth/2, canvasHeight/2, wheelRadius+20, 0, Math.PI * 2);
-            ctx.fillStyle = gradient;
-            ctx.fill();
-
-            // رسم العجلة الرئيسية
-            ctx.beginPath();
-            ctx.arc(canvasWidth/2, canvasHeight/2, wheelRadius, 0, Math.PI * 2);
+            ctx.arc(canvasSize / 2, canvasSize / 2, wheelRadius, 0, Math.PI * 2);
             ctx.fillStyle = '#FFFFFF';
             ctx.fill();
             ctx.lineWidth = 2;
@@ -60,142 +45,57 @@ export async function createLuckyWheelGif(winners, selectedWinnerIndex, avatarUr
             // رسم الأقسام
             for (let i = 0; i < numSegments; i++) {
                 ctx.save();
-                ctx.translate(canvasWidth/2, canvasHeight/2);
-
+                ctx.translate(canvasSize / 2, canvasSize / 2);
                 const segmentAngle = (i * 2 * Math.PI) / numSegments + rotation;
                 ctx.rotate(segmentAngle);
 
-                // رسم القسم مع التدرج
-                const segmentGradient = ctx.createLinearGradient(0, 0, wheelRadius, 0);
-                const color = winners[i].color;
-                segmentGradient.addColorStop(0, shadeColor(color, 20));
-                segmentGradient.addColorStop(1, color);
-
-                ctx.fillStyle = segmentGradient;
+                ctx.fillStyle = winners[i].color;
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
                 ctx.lineTo(wheelRadius, 0);
                 ctx.arc(0, 0, wheelRadius, 0, (2 * Math.PI) / numSegments);
                 ctx.fill();
                 
-                // إضافة حدود للأقسام
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // تحسين النص
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 20px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 4;
-                ctx.shadowOffsetX = 2;
-                ctx.shadowOffsetY = 2;
-
-                const textRadius = wheelRadius / 1.5;
-                ctx.save();
-                ctx.rotate(Math.PI / numSegments);
-                // تقسيم النص الطويل إلى سطرين
-                const words = winners[i].value.split(' ');
-                if (words.length > 1 && words[0].length + words[1].length > 10) {
-                    ctx.fillText(words[0], textRadius, -10);
-                    ctx.fillText(words.slice(1).join(' '), textRadius, 10);
-                } else {
-                    ctx.fillText(winners[i].value, textRadius, 0);
-                }
-                ctx.restore();
-
                 ctx.restore();
             }
 
-            // رسم الحافة الخارجية المضيئة
-            ctx.beginPath();
-            ctx.arc(canvasWidth/2, canvasHeight/2, wheelRadius+2, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-
-            // رسم الدائرة المركزية
-            const centerGradient = ctx.createRadialGradient(
-                canvasWidth/2, canvasHeight/2, 0,
-                canvasWidth/2, canvasHeight/2, centerRadius
-            );
-            centerGradient.addColorStop(0, '#fff');
-            centerGradient.addColorStop(1, '#ddd');
-
-            ctx.beginPath();
-            ctx.arc(canvasWidth/2, canvasHeight/2, centerRadius, 0, Math.PI * 2);
-            ctx.fillStyle = centerGradient;
-            ctx.fill();
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // رسم صورة المستخدم
+            // رسم صورة المستخدم في المنتصف
             ctx.save();
             ctx.beginPath();
-            ctx.arc(canvasWidth/2, canvasHeight/2, centerRadius-5, 0, Math.PI * 2);
+            ctx.arc(canvasSize / 2, canvasSize / 2, centerRadius - 5, 0, Math.PI * 2);
             ctx.clip();
-            ctx.drawImage(avatarImage, 
-                canvasWidth/2 - (centerRadius-5), 
-                canvasHeight/2 - (centerRadius-5), 
-                (centerRadius-5) * 2, 
-                (centerRadius-5) * 2
+            ctx.drawImage(
+                avatarImage,
+                canvasSize / 2 - (centerRadius - 5),
+                canvasSize / 2 - (centerRadius - 5),
+                (centerRadius - 5) * 2,
+                (centerRadius - 5) * 2
             );
             ctx.restore();
 
             // رسم المؤشر
-            ctx.drawImage(pinImage, 
-                (canvasWidth/2) - 20, 
-                canvasHeight/2 - wheelRadius - 30, 
-                40, 40
-            );
+            ctx.drawImage(pinImage, (canvasSize / 2) - 20, canvasSize / 2 - wheelRadius - 30, 40, 40);
         }
 
-        function shadeColor(color, percent) {
-            let R = parseInt(color.substring(1,3),16);
-            let G = parseInt(color.substring(3,5),16);
-            let B = parseInt(color.substring(5,7),16);
+        // تحديد زاوية التوقف
+        const winnerAngle = (2 * Math.PI / numSegments) * selectedWinnerIndex;
 
-            R = parseInt(R * (100 + percent) / 100);
-            G = parseInt(G * (100 + percent) / 100);
-            B = parseInt(B * (100 + percent) / 100);
+        // زيادة عدد الدورات لإعطاء تأثير حقيقي
+        const totalRotations = 5; // زيادة عدد الدورات الأولية
+        const targetRotation = totalRotations * Math.PI * 2 + winnerAngle;
 
-            R = (R<255)?R:255;
-            G = (G<255)?G:255;
-            B = (B<255)?B:255;
-
-            const RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-            const GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-            const BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-
-            return "#"+RR+GG+BB;
-        }
-
-        // حركة العجلة
-        const minValue = 4.50294947014537 - (0.28- parseInt(`0.${winners.length}`)) ;
-        const maxValue = 4.50294947014537 + (0.28- parseInt(`0.${winners.length}`)) ;
-        const targetAngle = Math.random() * (maxValue - minValue) + minValue;
-        
-        const fullRotations = 2; // زيادة عدد الدورات
-        const totalRotation = fullRotations * 2 * Math.PI + targetAngle;
-
-        const decelerationFrames = 15; // زيادة عدد الإطارات للحركة أكثر سلاسة
-        for (let i = 0; i < decelerationFrames; i++) {
-            const t = i / decelerationFrames;
-            const easedT = easeOutQuad(t);
-            const rotation = totalRotation - (totalRotation - targetAngle) * easedT;
-            drawWheel(rotation);
+        const frames = 40; // عدد الإطارات
+        for (let i = 0; i <= frames; i++) {
+            const progress = i / frames;
+            const easedProgress = easeOutQuad(progress);
+            const currentRotation = targetRotation * easedProgress;
+            drawWheel(currentRotation);
             encoder.addFrame(ctx);
         }
 
-        // الإطار النهائي
-        drawWheel(targetAngle);
-        encoder.addFrame(ctx);
-
-        // إطارات إضافية للنتيجة النهائية
+        // تثبيت العجلة على الجائزة الفائزة
         for (let i = 0; i < 10; i++) {
+            drawWheel(targetRotation);
             encoder.addFrame(ctx);
         }
 
@@ -214,6 +114,7 @@ export async function createLuckyWheelGif(winners, selectedWinnerIndex, avatarUr
     }
 }
 
+// دالة التباطؤ التدريجي
 function easeOutQuad(t) {
-    return t * (2 - t);
+    return 1 - (1 - t) * (1 - t);
 }
