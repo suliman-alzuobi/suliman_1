@@ -1,0 +1,7 @@
+[
+    { "value": "500k", "percentage": 70, "color": "#a9d6e5" },
+    { "value": "1m", "percentage": 60, "color": "#89c2d9" },
+    { "value": "2m", "percentage": 50, "color": "#61a5c2" },
+    { "value": "3m", "percentage": 40, "color": "#468faf" },
+    { "value": "5m", "percentage": 30, "color": "#2c7da0" }
+]
