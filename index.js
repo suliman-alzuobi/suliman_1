@@ -88,7 +88,6 @@ client.on('interactionCreate', async interaction => {
             .addFields(
                 { name: 'الفائز', value: user.toString(), inline: true },
                 { name: 'الجائزة', value: winner.value, inline: true },
-                { name: 'نسبة الفوز', value: `${winner.percentage}%`, inline: true }
             )
             .setTimestamp();
 
